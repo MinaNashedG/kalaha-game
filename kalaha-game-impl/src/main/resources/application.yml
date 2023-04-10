@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: kalaha-game
+
+server:
+  port: 8090
+
+kalaha:
+  game:
+    default-players: 2
+    default-pits: 6
+    default-stones: 6
