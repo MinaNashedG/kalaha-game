@@ -33,7 +33,11 @@ public class KalahaSowService {
 
 		kalahaGameValidator.validateGameAndPit(game, pitId);
 		sowStones(pitId, game);
+		checkGameOver(game);
+		return kalahaGameMapper.transform(kalahaGameRepository.save(game));
+	}
 
+	private void checkGameOver(KalahaGame game) {
 		if (kalahaGameValidator.isGameOver(game)) {
 			game.setStatus(GameStatus.OVER);
 			game.setPlayerWin(playerWinner(game));
@@ -43,7 +47,6 @@ public class KalahaSowService {
 				updateGamePlayerTurn(game);
 			}
 		}
-		return kalahaGameMapper.transform(kalahaGameRepository.save(game));
 	}
 
 	private int playerWinner(KalahaGame game) {
@@ -75,16 +78,21 @@ public class KalahaSowService {
 		int pitIndex = pitId + 1;
 		while (stones > 0) {
 			pitIndex = pitIndex % gameBoard.size();
-			if (isLastStoneAndEmptyOwnPit(game, gameBoard, stones, pitIndex)) {
-				captureStones(game, gameBoard, pitIndex);
-				break;
-			} else {
-				game.setBonusTurn(stones == 1 && pitIndex == game.getEndPit());
-			}
+			if (isCapturePit(game, gameBoard, stones, pitIndex)) break;
 			gameBoard.set(pitIndex, gameBoard.get(pitIndex) + 1);
 			stones--;
 			pitIndex++;
 		}
+	}
+
+	private boolean isCapturePit(KalahaGame game, List<Integer> gameBoard, int stones, int pitIndex) {
+		if (isLastStoneAndEmptyOwnPit(game, gameBoard, stones, pitIndex)) {
+			captureStones(game, gameBoard, pitIndex);
+			return true;
+		} else {
+			game.setBonusTurn(stones == 1 && pitIndex == game.getEndPit());
+		}
+		return false;
 	}
 
 	private void captureStones(KalahaGame game, List<Integer> gameBoard, int pitIndex) {

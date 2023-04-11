@@ -10,6 +10,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -58,6 +59,14 @@ class KalahaGameValidatorTest {
 		assertThrows(InvalidPlayerTurnException.class, () -> validator.validateGameAndPit(game, 8));
 		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 15));
 		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 15));
+
+		//GIVEN
+		game.setStartPit(6);
+		game.setEndPit(13);
+		game.setPlayerTurn(2);
+
+		//THEN
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 13));
 	}
 
 	@Test
@@ -80,6 +89,7 @@ class KalahaGameValidatorTest {
 		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
 				.numberOfStones(2)
 				.build()));
+
 	}
 
 	@Test
@@ -113,6 +123,45 @@ class KalahaGameValidatorTest {
 	void should_throw_invalid_game_state_exception_when_game_is_already_over() {
 		game.setStatus(GameStatus.OVER);
 		assertThrows(InvalidGameStateException.class, () -> validator.validateGameAndPit(game, 1));
+	}
+
+	@Test
+	public void should_test_is_game_over_returns_false_for_non_empty_board() {
+		// create a game with a non-empty board
+		List<Integer> board = Arrays.asList(0, 3, 2, 1, 0, 1, 2, 3, 0, 4, 5, 6, 0, 8);
+		KalahaGame game = new KalahaGame();
+		game.setBoard(board);
+		game.setNumberOfPits(6);
+		game.setStartPit(0);
+		game.setEndPit(6);
+		// assert that isGameOver returns false
+		assertFalse(validator.isGameOver(game));
+	}
+
+	@Test
+	public void should_test_is_game_over_returns_true_for_empty_board() {
+		// create a game with an empty board
+		List<Integer> board = Arrays.asList(0, 0, 0, 0, 0, 0, 6, 6, 6, 6, 0, 0, 6, 6);
+		KalahaGame game = new KalahaGame();
+		game.setBoard(board);
+		game.setNumberOfPits(6);
+		game.setStartPit(7);
+		game.setEndPit(13);
+		// assert that isGameOver returns true
+		assertTrue(validator.isGameOver(game));
+	}
+
+	@Test
+	public void should_test_is_game_over_returns_false_for_partially_empty_board() {
+		// create a game with a partially empty board
+		List<Integer> board = Arrays.asList(0, 0, 0, 0, 0, 7, 7, 0, 0, 1, 7, 7, 7, 7);
+		KalahaGame game = new KalahaGame();
+		game.setBoard(board);
+		game.setNumberOfPits(6);
+		game.setStartPit(0);
+		game.setEndPit(6);
+		// assert that isGameOver returns false
+		assertFalse(validator.isGameOver(game));
 	}
 
 }

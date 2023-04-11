@@ -9,6 +9,7 @@ import com.kalaha.game.model.KalahaGameRequest;
 import com.kalaha.game.model.KalahaGameResponse;
 import com.kalaha.game.validator.KalahaGameValidator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Arrays;
 import java.util.List;
@@ -33,6 +34,7 @@ public class KalahaGameService {
 		this.kalahaGameValidator = kalahaGameValidator;
 	}
 
+	@Transactional
 	public KalahaGameResponse createNewGame(KalahaGameRequest kalahaGameRequest) {
 
 		KalahaGame game = kalahaGameRepository.save(createGameInstance(kalahaGameRequest));

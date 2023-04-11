@@ -33,8 +33,12 @@ public class KalahaGameValidator {
 			throw new InvalidGameInputException("Invalid selected pit id or number of stones inside pit is zero.");
 		}
 
+		if (pitId == game.getEndPit()) {
+			throw new InvalidGameInputException("Invalid pit , the score pit can't be selected.");
+		}
+
 		if (!isValidPitIdForPlayerTurn(game.getStartPit(), game.getEndPit() - 1, pitId)) {
-			throw new InvalidPlayerTurnException("Selected pit id is not belong to current player turn.");
+			throw new InvalidPlayerTurnException("pit id is not belong to current player turn .");
 		}
 
 	}
