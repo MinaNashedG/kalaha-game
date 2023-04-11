@@ -25,11 +25,11 @@ public class KalahaGame {
 
 	private GameStatus status;
 
-	private Integer pitsCount;
+	private Integer numberOfPits;
 
-	private Integer playersCount;
+	private Integer numberOfPlayers;
 
-	private Integer stonesCount;
+	private Integer numberOfStones;
 
 	private boolean bonusTurn;
 
@@ -38,4 +38,6 @@ public class KalahaGame {
 	private Integer endPit;
 
 	private List<Player> players;
+
+	private Integer playerWin;
 }

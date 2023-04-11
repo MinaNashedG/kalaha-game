@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @Schema(description = "kalaha error response")
 public class KalahaErrorResponse {
 
-	@Schema(description = "Code of the error", example = "VAL001")
+	@Schema(description = "Code of the error")
 	private String code;
 
-	@Schema(description = "The error message description.", example = "Invalid player turn.")
+	@Schema(description = "The error message description.")
 	private String message;
 
 }

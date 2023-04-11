@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: kalaha-game
+
+kalaha:
+  game:
+    default-players: 2
+    default-pits: 6
+    default-stones: 6

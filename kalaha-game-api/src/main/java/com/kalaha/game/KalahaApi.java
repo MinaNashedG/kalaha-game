@@ -5,6 +5,7 @@ import com.kalaha.game.model.KalahaGameRequest;
 import com.kalaha.game.model.KalahaGameResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @Tag(name = "Kalaha Game API")
 public interface KalahaApi {
 
-	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
+	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Create New Kalaha Game API.",
 			description = "Api for creating new kalaha game instance. It returns response object with " +
@@ -30,16 +31,22 @@ public interface KalahaApi {
 					@ApiResponse(responseCode = "201", content = @Content(schema = @Schema(implementation =
 							KalahaGameResponse.class))),
 					@ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation =
-							KalahaErrorResponse.class))),
+							KalahaErrorResponse.class),
+							examples =
+							@ExampleObject(value = "{\"code\":VAL_006,\"message\":\"Invalid Request\"}"))),
 					@ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation =
-							KalahaErrorResponse.class))),
+							KalahaErrorResponse.class),
+							examples =
+							@ExampleObject(value = "{\"code\":VAL_003,\"message\":\"Resource not found\"}"))),
 					@ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation =
-							KalahaErrorResponse.class)))
+							KalahaErrorResponse.class),
+							examples = @ExampleObject(value = "{\"code\":GeneralException,\"message\":\"Internal " +
+									"server error\"}")))
 			})
 	KalahaGameResponse createGame(@RequestBody(description = "Kalaha game request.",
 			content = @Content(schema = @Schema(implementation = KalahaGameRequest.class))) KalahaGameRequest kalahaGameRequest);
 
-	@PutMapping(value = "/{gameId}/pits/{pitId}")
+	@PutMapping(value = "/{gameId}/pits/{pitId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Sowing Stones API.",
 			description = "Api for sowing stones inside selected pit. It returns the game board after sowing stones " +
 					"to other game pits",
@@ -47,12 +54,17 @@ public interface KalahaApi {
 					@ApiResponse(responseCode = "200", content = @Content(schema = @Schema(implementation =
 							KalahaGameResponse.class))),
 					@ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation =
-							KalahaErrorResponse.class))),
+							KalahaErrorResponse.class),
+							examples =
+							@ExampleObject(value = "{\"code\":VAL_002,\"message\":\"Invalid Player Turn\"}"))),
 					@ApiResponse(responseCode = "404", content = @Content(schema = @Schema(implementation =
-							KalahaErrorResponse.class))),
+							KalahaErrorResponse.class),
+							examples =
+							@ExampleObject(value = "{\"code\":VAL_003,\"message\":\"Resource not found\"}"))),
 					@ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation =
-							KalahaErrorResponse.class)))
+							KalahaErrorResponse.class),
+							examples = @ExampleObject(value = "{\"code\":GeneralException,\"message\":\"Internal " +
+									"server error\"}")))
 			})
 	KalahaGameResponse sow(@PathVariable String gameId, @PathVariable Integer pitId);
-
 }

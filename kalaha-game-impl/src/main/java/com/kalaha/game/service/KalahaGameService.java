@@ -7,13 +7,11 @@ import com.kalaha.game.model.GameStatus;
 import com.kalaha.game.model.KalahaGame;
 import com.kalaha.game.model.KalahaGameRequest;
 import com.kalaha.game.model.KalahaGameResponse;
+import com.kalaha.game.validator.KalahaGameValidator;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -25,19 +23,24 @@ public class KalahaGameService {
 	private final KalahaGameMapper kalahaGameMapper;
 	private final KalahaGameConfig kalahaGameConfig;
 
+	private final KalahaGameValidator kalahaGameValidator;
+
 	public KalahaGameService(KalahaGameRepository kalahaGameRepository, KalahaGameMapper kalahaGameMapper,
-			KalahaGameConfig kalahaGameConfig) {
+			KalahaGameConfig kalahaGameConfig, KalahaGameValidator kalahaGameValidator) {
 		this.kalahaGameRepository = kalahaGameRepository;
 		this.kalahaGameMapper = kalahaGameMapper;
 		this.kalahaGameConfig = kalahaGameConfig;
+		this.kalahaGameValidator = kalahaGameValidator;
 	}
 
 	public KalahaGameResponse createNewGame(KalahaGameRequest kalahaGameRequest) {
+
 		KalahaGame game = kalahaGameRepository.save(createGameInstance(kalahaGameRequest));
 		return kalahaGameMapper.transform(game);
 	}
 
 	private KalahaGame createGameInstance(KalahaGameRequest kalahaGameRequest) {
+		kalahaGameValidator.validateGameRequest(kalahaGameRequest);
 		Integer numberOfPits = getNumberOfPlayerPits(kalahaGameRequest);
 		Integer numberOfTotalPits = getNumberOfTotalPits(kalahaGameRequest);
 		int[] pits = new int[numberOfTotalPits];
@@ -48,9 +51,9 @@ public class KalahaGameService {
 		return KalahaGame.builder()
 				.board(pitsList)
 				.status(GameStatus.NEW)
-				.pitsCount(numberOfPits)
-				.playersCount(getNumberOfPlayers(kalahaGameRequest))
-				.stonesCount(numberOfStones)
+				.numberOfPits(numberOfPits)
+				.numberOfPlayers(kalahaGameConfig.getDefaultPlayers())
+				.numberOfStones(numberOfStones)
 				.playerTurn(PLAYER_TURN)
 				.startPit(0)
 				.endPit(numberOfPits)
@@ -71,12 +74,6 @@ public class KalahaGameService {
 				.orElse(kalahaGameConfig.getDefaultStones());
 	}
 
-	private Integer getNumberOfPlayers(KalahaGameRequest kalahaGameRequest) {
-		return Optional.ofNullable(kalahaGameRequest)
-				.map(KalahaGameRequest::getNumberOfPlayers)
-				.orElse(kalahaGameConfig.getDefaultPlayers());
-	}
-
 	private Integer getNumberOfPlayerPits(KalahaGameRequest kalahaGameRequest) {
 		return Optional.ofNullable(kalahaGameRequest)
 				.map(KalahaGameRequest::getNumberOfPits)
@@ -84,10 +81,9 @@ public class KalahaGameService {
 	}
 
 	private Integer getNumberOfTotalPits(KalahaGameRequest kalahaGameRequest) {
-		final Integer numberOfPlayers = getNumberOfPlayers(kalahaGameRequest);
+		final Integer numberOfPlayers = kalahaGameConfig.getDefaultPlayers();
 		return Optional.ofNullable(kalahaGameRequest)
 				.map(KalahaGameRequest::getNumberOfPits)
-				.filter(Objects::nonNull)
 				.map(pits -> calculateTotalPits(pits, numberOfPlayers))
 				.orElse(calculateTotalPits(kalahaGameConfig.getDefaultPits(), numberOfPlayers));
 	}

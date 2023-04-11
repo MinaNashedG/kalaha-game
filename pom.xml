@@ -7,7 +7,7 @@
 	<groupId>com.kalaha.game</groupId>
 	<artifactId>kalaha-game</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
-	<name>Kalaha Game Aggregator Service</name>
+	<name>kalaha-game-aggregator-service</name>
 
 	<parent>
 		<groupId>org.springframework.boot</groupId>

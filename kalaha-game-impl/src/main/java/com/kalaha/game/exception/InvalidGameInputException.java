@@ -4,15 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.BAD_REQUEST)
-public class InvalidGameInputException extends RuntimeException {
+public class InvalidGameInputException extends KalahaException {
 
 	private static final String VAL_001 = "VAL_001";
 
 	public InvalidGameInputException(String message) {
-		super(message);
+		super(message, VAL_001);
 	}
 
-	public String getCode() {
-		return VAL_001;
-	}
 }

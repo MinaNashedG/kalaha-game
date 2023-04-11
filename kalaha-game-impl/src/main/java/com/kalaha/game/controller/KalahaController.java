@@ -5,6 +5,7 @@ import com.kalaha.game.model.KalahaGameRequest;
 import com.kalaha.game.model.KalahaGameResponse;
 import com.kalaha.game.service.KalahaGameService;
 import com.kalaha.game.service.KalahaSowService;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -19,7 +20,7 @@ public class KalahaController implements KalahaApi {
 	}
 
 	@Override
-	public KalahaGameResponse createGame(KalahaGameRequest kalahaGameRequest) {
+	public KalahaGameResponse createGame(@RequestBody KalahaGameRequest kalahaGameRequest) {
 		return kalahaGameService.createNewGame(kalahaGameRequest);
 	}
 

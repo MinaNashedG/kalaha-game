@@ -36,23 +36,36 @@ public class KalahaSowService {
 
 		if (kalahaGameValidator.isGameOver(game)) {
 			game.setStatus(GameStatus.OVER);
+			game.setPlayerWin(playerWinner(game));
 		} else {
 			game.setStatus(GameStatus.IN_PROGRESS);
+			if (!game.isBonusTurn()) {
+				updateGamePlayerTurn(game);
+			}
 		}
-
-		if (!game.isBonusTurn()) {
-			updateGamePlayerTurn(game);
-		}
-
 		return kalahaGameMapper.transform(kalahaGameRepository.save(game));
 	}
 
-	private KalahaGame updateGamePlayerTurn(KalahaGame game) {
-		game.setPlayerTurn(Objects.equals(game.getPlayersCount(), game.getPlayerTurn()) ? 1
+	private int playerWinner(KalahaGame game) {
+		int player = 0;
+		int maxScore = -1;
+		final Integer numberOfPits = game.getNumberOfPits();
+		int scorePitPlayer = numberOfPits;
+		while (scorePitPlayer < game.getBoard().size()) {
+			if (game.getBoard().get(scorePitPlayer) > maxScore) {
+				player++;
+				maxScore = game.getBoard().get(scorePitPlayer);
+			}
+			scorePitPlayer += numberOfPits + 1;
+		}
+		return player;
+	}
+
+	private void updateGamePlayerTurn(KalahaGame game) {
+		game.setPlayerTurn(Objects.equals(game.getNumberOfPlayers(), game.getPlayerTurn()) ? 1
 				: game.getPlayerTurn() + 1);
-		game.setStartPit(game.getPlayerTurn() == 1 ? 0 : game.getStartPit() + game.getPitsCount() + 1);
-		game.setEndPit(game.getStartPit() + game.getPitsCount());
-		return game;
+		game.setStartPit(game.getPlayerTurn() == 1 ? 0 : game.getStartPit() + game.getNumberOfPits() + 1);
+		game.setEndPit(game.getStartPit() + game.getNumberOfPits());
 	}
 
 	private void sowStones(Integer pitId, KalahaGame game) {
@@ -62,22 +75,34 @@ public class KalahaSowService {
 		int pitIndex = pitId + 1;
 		while (stones > 0) {
 			pitIndex = pitIndex % gameBoard.size();
-			if (stones == 1 && gameBoard.get(pitIndex) == 0
-					&& pitIndex <= game.getEndPit() - 1 && pitIndex >= game.getStartPit()) {
-				//capture case
-				int oppositePit = (game.getPitsCount() * game.getPlayersCount()) - pitIndex;
-				int oppositeStones = gameBoard.get(oppositePit);
-				gameBoard.set(game.getEndPit(), gameBoard.get(pitIndex) + oppositeStones);
-				gameBoard.set(oppositePit, 0);
+			if (isLastStoneAndEmptyOwnPit(game, gameBoard, stones, pitIndex)) {
+				captureStones(game, gameBoard, pitIndex);
 				break;
 			} else {
 				game.setBonusTurn(stones == 1 && pitIndex == game.getEndPit());
 			}
-
 			gameBoard.set(pitIndex, gameBoard.get(pitIndex) + 1);
 			stones--;
 			pitIndex++;
 		}
+	}
+
+	private void captureStones(KalahaGame game, List<Integer> gameBoard, int pitIndex) {
+		int oppositePit = (game.getNumberOfPits() * game.getNumberOfPlayers()) - pitIndex;
+		int oppositeStones = gameBoard.get(oppositePit);
+		if (oppositeStones > 0) {
+			int playerPit = gameBoard.get(game.getEndPit());
+			gameBoard.set(game.getEndPit(), playerPit + oppositeStones + 1);
+			gameBoard.set(oppositePit, 0);
+		} else {
+			gameBoard.set(pitIndex, 1);
+		}
+	}
+
+	private boolean isLastStoneAndEmptyOwnPit(KalahaGame game, List<Integer> gameBoard, int stones, int pitIndex) {
+		return stones == 1 && gameBoard.get(pitIndex) == 0
+				&& pitIndex <= game.getEndPit() - 1
+				&& pitIndex >= game.getStartPit();
 	}
 
 }
