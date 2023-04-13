@@ -12,7 +12,7 @@
 	<name>kalaha-game-api</name>
 	<description>Kalaha Game API</description>
 	<properties>
-		<org.projectlombok.version>1.18.24</org.projectlombok.version>
+		<org.projectlombok.version>1.18.26</org.projectlombok.version>
 		<swagger-annotations>2.2.8</swagger-annotations>
 	</properties>
 	<dependencies>
