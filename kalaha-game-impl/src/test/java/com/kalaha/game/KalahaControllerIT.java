@@ -4,13 +4,16 @@ import com.kalaha.game.controller.KalahaController;
 import com.kalaha.game.dao.KalahaGameRepository;
 import com.kalaha.game.model.GameStatus;
 import com.kalaha.game.model.KalahaGame;
+import com.kalaha.game.security.JwtUtil;
 import com.kalaha.game.service.KalahaGameService;
 import com.kalaha.game.service.KalahaSowService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,6 +33,8 @@ class KalahaControllerIT {
 	@Autowired
 	private KalahaSowService kalahaSowService;
 
+	@MockBean
+	private JwtUtil jwtUtil;
 	@Autowired
 	private KalahaGameRepository kalahaGameRepository;
 	private MockMvc mockMvc;
@@ -38,6 +43,7 @@ class KalahaControllerIT {
 	void setUp() {
 		mockMvc = MockMvcBuilders.standaloneSetup(new KalahaController(kalahaGameService, kalahaSowService))
 				.build();
+		Mockito.lenient().when(jwtUtil.validateToken("token", "testUserName")).thenReturn(true);
 	}
 
 	@Test
@@ -45,7 +51,8 @@ class KalahaControllerIT {
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/kalaha-games")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"numberOfPits\": 6, \"numberOfStones\": 6}"))
+						.content("{\"numberOfPits\": 6, \"numberOfStones\": 6}")
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isCreated())
 				.andExpect(MockMvcResultMatchers.content()
@@ -58,7 +65,8 @@ class KalahaControllerIT {
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/kalaha-games")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"numberOfPits\": 4, \"numberOfStones\": 5}"))
+						.content("{\"numberOfPits\": 4, \"numberOfStones\": 5}")
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isCreated())
 				.andExpect(MockMvcResultMatchers.content()
@@ -71,7 +79,8 @@ class KalahaControllerIT {
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/kalaha-games")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"numberOfPits\": 0}"))
+						.content("{\"numberOfPits\": 0}")
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isBadRequest());
 	}
@@ -81,7 +90,8 @@ class KalahaControllerIT {
 
 		mockMvc.perform(MockMvcRequestBuilders.post("/api/v1/kalaha-games")
 						.contentType(MediaType.APPLICATION_JSON)
-						.content("{\"numberOfStones\": 1000}"))
+						.content("{\"numberOfStones\": 1000}")
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isBadRequest());
 	}
@@ -100,7 +110,8 @@ class KalahaControllerIT {
 				.build());
 
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/kalaha-games/" + game.getId() + "/pits/1")
-						.contentType(MediaType.APPLICATION_JSON))
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.content()
@@ -122,7 +133,8 @@ class KalahaControllerIT {
 				.build());
 
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/kalaha-games/" + game.getId() + "/pits/0")
-						.contentType(MediaType.APPLICATION_JSON))
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.content()
@@ -144,7 +156,8 @@ class KalahaControllerIT {
 				.build());
 
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/kalaha-games/" + game.getId() + "/pits/0")
-						.contentType(MediaType.APPLICATION_JSON))
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.content()
@@ -166,7 +179,8 @@ class KalahaControllerIT {
 				.build());
 
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/kalaha-games/" + game.getId() + "/pits/12")
-						.contentType(MediaType.APPLICATION_JSON))
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isOk())
 				.andExpect(MockMvcResultMatchers.content()
@@ -188,7 +202,8 @@ class KalahaControllerIT {
 				.build());
 
 		mockMvc.perform(MockMvcRequestBuilders.put("/api/v1/kalaha-games/" + game.getId() + "/pits/10")
-						.contentType(MediaType.APPLICATION_JSON))
+						.contentType(MediaType.APPLICATION_JSON)
+						.header("Authorization", "Bearer token"))
 				.andDo(MockMvcResultHandlers.print())
 				.andExpect(MockMvcResultMatchers.status().isBadRequest());
 	}

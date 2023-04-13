@@ -28,4 +28,5 @@ public class KalahaController implements KalahaApi {
 	public KalahaGameResponse sow(String gameId, Integer pitId) {
 		return kalahaSowService.sow(gameId, pitId);
 	}
+
 }

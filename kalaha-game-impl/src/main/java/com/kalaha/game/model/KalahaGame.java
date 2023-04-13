@@ -37,7 +37,7 @@ public class KalahaGame {
 
 	private Integer endPit;
 
-	private List<Player> players;
+	private List<Player> playerDTOS;
 
 	private Integer playerWin;
 }
