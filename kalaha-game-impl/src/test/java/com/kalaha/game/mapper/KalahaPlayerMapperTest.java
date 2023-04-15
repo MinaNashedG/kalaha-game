@@ -5,6 +5,8 @@ import com.kalaha.game.model.PlayerDTO;
 import org.junit.jupiter.api.Test;
 import org.mapstruct.factory.Mappers;
 
+import java.util.Collections;
+
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,7 +28,7 @@ class KalahaPlayerMapperTest {
 	@Test
 	public void should_not_throw_exception_in_case_of_null() {
 
-		assertDoesNotThrow(() -> mapper.transform(null));
+		assertDoesNotThrow(() -> mapper.transform(Collections.singletonList(null)));
 		assertDoesNotThrow(() -> mapper.transform(PlayerDTO.builder().build()));
 	}
 }

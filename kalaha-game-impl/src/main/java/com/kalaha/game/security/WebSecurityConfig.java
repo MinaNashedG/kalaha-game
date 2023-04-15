@@ -1,5 +1,6 @@
 package com.kalaha.game.security;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,13 +16,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
-	private final UserDetailsServiceImpl userDetailsService;
-	private final JwtRequestFilter jwtRequestFilter;
 
-	public WebSecurityConfig(UserDetailsServiceImpl user, JwtRequestFilter jwtRequestFilter) {
-		this.userDetailsService = user;
-		this.jwtRequestFilter = jwtRequestFilter;
-	}
+	@Autowired
+	private JwtRequestFilter jwtRequestFilter;
+
+	@Autowired
+	private UserDetailsServiceImpl userDetailsService;
 
 	@Override
 	protected void configure(AuthenticationManagerBuilder auth) throws Exception {
@@ -57,4 +57,5 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 	public PasswordEncoder passwordEncoder() {
 		return new BCryptPasswordEncoder();
 	}
+
 }

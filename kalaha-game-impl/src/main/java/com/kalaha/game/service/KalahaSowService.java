@@ -6,32 +6,36 @@ import com.kalaha.game.mapper.KalahaGameMapper;
 import com.kalaha.game.model.GameStatus;
 import com.kalaha.game.model.KalahaGame;
 import com.kalaha.game.model.KalahaGameResponse;
+import com.kalaha.game.model.Player;
+import com.kalaha.game.security.UserContext;
 import com.kalaha.game.validator.KalahaGameValidator;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
+@Transactional
 public class KalahaSowService {
 	private final KalahaGameRepository kalahaGameRepository;
 	private final KalahaGameMapper kalahaGameMapper;
 	private final KalahaGameValidator kalahaGameValidator;
 
+	private final UserContext userContext;
+
 	public KalahaSowService(KalahaGameRepository kalahaGameRepository, KalahaGameMapper kalahaGameMapper,
-			KalahaGameValidator kalahaGameValidator) {
+			KalahaGameValidator kalahaGameValidator, UserContext userContext) {
 		this.kalahaGameRepository = kalahaGameRepository;
 		this.kalahaGameMapper = kalahaGameMapper;
 		this.kalahaGameValidator = kalahaGameValidator;
+		this.userContext = userContext;
 	}
 
-	@Transactional
 	public KalahaGameResponse sow(String gameId, Integer pitId) {
 		KalahaGame game = kalahaGameRepository.findById(gameId)
 				.orElseThrow(() -> new NoGameFoundException(String.format("Game with id %s not found.", gameId)));
 
-		kalahaGameValidator.validateGameAndPit(game, pitId);
+		kalahaGameValidator.validateGame(game, pitId, userContext.getUserId());
 		sowStones(pitId, game);
 		checkGameOver(game);
 		return kalahaGameMapper.transform(kalahaGameRepository.save(game));
@@ -40,7 +44,7 @@ public class KalahaSowService {
 	private void checkGameOver(KalahaGame game) {
 		if (kalahaGameValidator.isGameOver(game)) {
 			game.setStatus(GameStatus.OVER);
-			game.setPlayerWin(playerWinner(game));
+			game.setWinner(playerWinner(game).getId());
 		} else {
 			game.setStatus(GameStatus.IN_PROGRESS);
 			if (!game.isBonusTurn()) {
@@ -49,25 +53,26 @@ public class KalahaSowService {
 		}
 	}
 
-	private int playerWinner(KalahaGame game) {
-		int player = 0;
-		int maxScore = -1;
+	private Player playerWinner(KalahaGame game) {
+		int playerIndex = 0;
+		int maxScore = 0;
 		final Integer numberOfPits = game.getNumberOfPits();
 		int scorePitPlayer = numberOfPits;
 		while (scorePitPlayer < game.getBoard().size()) {
 			if (game.getBoard().get(scorePitPlayer) > maxScore) {
-				player++;
+				playerIndex++;
 				maxScore = game.getBoard().get(scorePitPlayer);
 			}
 			scorePitPlayer += numberOfPits + 1;
 		}
-		return player;
+		return game.getPlayers().get(playerIndex - 1);
 	}
 
 	private void updateGamePlayerTurn(KalahaGame game) {
-		game.setPlayerTurn(Objects.equals(game.getNumberOfPlayers(), game.getPlayerTurn()) ? 1
-				: game.getPlayerTurn() + 1);
-		game.setStartPit(game.getPlayerTurn() == 1 ? 0 : game.getStartPit() + game.getNumberOfPits() + 1);
+		game.setPlayerTurnIndex(game.getNumberOfPlayers() == game.getPlayerTurnIndex() + 1 ?
+				0 : game.getPlayerTurnIndex() + 1);
+		game.setPlayerTurn(game.getPlayers().get(game.getPlayerTurnIndex()).getId());
+		game.setStartPit(game.getPlayerTurnIndex() == 0 ? 0 : game.getStartPit() + game.getNumberOfPits() + 1);
 		game.setEndPit(game.getStartPit() + game.getNumberOfPits());
 	}
 

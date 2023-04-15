@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -16,19 +15,19 @@ public class JwtUtil {
 	@Value("${jwt.secret}")
 	private String secret;
 
-	public String generateToken(UserDetails userDetails) {
+	public String generateToken(String userId) {
 		Date now = new Date();
 		LocalDateTime expiryDate = LocalDateTime.now().plusMinutes(60);
 
 		return Jwts.builder()
-				.setSubject(userDetails.getUsername())
+				.setSubject(userId)
 				.setIssuedAt(now)
 				.setExpiration(Date.from(expiryDate.toInstant(ZoneOffset.UTC)))
 				.signWith(SignatureAlgorithm.HS512, secret)
 				.compact();
 	}
 
-	public String getUsernameFromToken(String token) {
+	public String getUserIdFromToken(String token) {
 		Claims claims = Jwts.parser()
 				.setSigningKey(secret)
 				.parseClaimsJws(token)
@@ -37,9 +36,9 @@ public class JwtUtil {
 		return claims.getSubject();
 	}
 
-	public boolean validateToken(String token, String username) {
-		String usernameFromToken = getUsernameFromToken(token);
-		return (usernameFromToken.equals(username) && !isTokenExpired(token));
+	public boolean validateToken(String token, String userId) {
+		String userIdFromToken = getUserIdFromToken(token);
+		return (userIdFromToken.equals(userId) && !isTokenExpired(token));
 	}
 
 	private boolean isTokenExpired(String token) {

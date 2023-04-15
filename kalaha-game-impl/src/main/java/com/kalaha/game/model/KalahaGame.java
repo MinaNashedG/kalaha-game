@@ -21,7 +21,9 @@ public class KalahaGame {
 
 	private List<Integer> board;
 
-	private Integer playerTurn;
+	private String playerTurn;
+
+	private Integer playerTurnIndex;
 
 	private GameStatus status;
 
@@ -37,7 +39,7 @@ public class KalahaGame {
 
 	private Integer endPit;
 
-	private List<Player> playerDTOS;
+	private List<Player> players;
 
-	private Integer playerWin;
+	private String winner;
 }

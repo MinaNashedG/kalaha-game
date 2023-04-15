@@ -38,11 +38,15 @@ public interface AuthenticationApi {
 							KalahaErrorResponse.class),
 							examples =
 							@ExampleObject(value = "{\"code\":Unauthorized,\"message\":\"Player authentication " +
-									"failed" +
-									".\"}"))),
+									"failed.\"}"))),
+					@ApiResponse(responseCode = "400", content = @Content(schema = @Schema(implementation =
+							KalahaErrorResponse.class),
+							examples =
+							@ExampleObject(value = "{\"code\":VAL_001,\"message\":\"Username or password can't be " +
+									"empty.\"}")))
 			})
-	AuthenticatedPlayer login(@RequestBody(description = "Player authentication request.",
-			content = @Content(schema = @Schema(implementation = PlayerDTO.class))) PlayerDTO playerDTO) throws Exception;
+	AuthenticatedPlayer login(@RequestBody(description = "Player login request.",
+			content = @Content(schema = @Schema(implementation = PlayerDTO.class)), required = true) PlayerDTO playerDTO) throws Exception;
 
 
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)

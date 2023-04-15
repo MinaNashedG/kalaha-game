@@ -12,4 +12,5 @@ import lombok.NoArgsConstructor;
 public class AuthenticatedPlayer {
 
 	private String token;
+	private String playerId;
 }

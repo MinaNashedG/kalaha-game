@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.util.List;
 
 @Data
 @Builder
@@ -22,5 +23,8 @@ public class KalahaGameRequest implements Serializable {
 
 	@Schema(description = "Number of stones require for each pit", example = "6")
 	private Integer numberOfStones;
+
+	@Schema(description = "Game Player Opponent", example = "2")
+	private String opponent;
 
 }

@@ -51,7 +51,6 @@ public class GeneralExceptionHandler {
 	@ExceptionHandler(Exception.class)
 	@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
 	public KalahaErrorResponse handleGeneralException(Exception ex) {
-		ex.printStackTrace();
 		return KalahaErrorResponse.builder()
 				.code("GeneralException")
 				.message("Internal server error ")

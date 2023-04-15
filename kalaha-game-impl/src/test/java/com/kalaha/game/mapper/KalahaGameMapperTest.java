@@ -12,6 +12,7 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 class KalahaGameMapperTest {
+	public static final String PLAYER_ONE = "1";
 	private final KalahaGameMapper mapper = Mappers.getMapper(KalahaGameMapper.class);
 
 	@Test
@@ -23,7 +24,7 @@ class KalahaGameMapperTest {
 				.numberOfPits(6)
 				.numberOfPlayers(2)
 				.numberOfStones(6)
-				.playerTurn(1)
+				.playerTurn(PLAYER_ONE)
 				.startPit(0)
 				.endPit(6)
 				.build();

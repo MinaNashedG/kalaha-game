@@ -11,6 +11,8 @@ import lombok.NoArgsConstructor;
 @Data
 public class PlayerDTO {
 
+	private String id;
 	private String userName;
 	private String password;
+	private String email;
 }

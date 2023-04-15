@@ -7,6 +7,8 @@ import com.kalaha.game.model.GameStatus;
 import com.kalaha.game.model.KalahaGame;
 import com.kalaha.game.model.KalahaGameRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,9 +23,14 @@ public class KalahaGameValidator {
 	public static final int MAX_PITS = 10;
 	public static final int MIN_STONES = 3;
 	public static final int MAX_STONES = 10;
+	public static final int PLAYERS = 2;
 
-	public void validateGameAndPit(KalahaGame game, int pitId) {
+	public void validateGame(KalahaGame game, int pitId, String playerId) {
 		List<Integer> gameBoard = game.getBoard();
+		final String playerTurnId = getPlayerTurnId(game);
+		if (playerId == null || !StringUtils.equals(playerId, playerTurnId)) {
+			throw new InvalidPlayerTurnException("Invalid Player turn.");
+		}
 
 		if (game.getStatus() == GameStatus.OVER || isGameOver(game)) {
 			throw new InvalidGameStateException("Game is already Over.");
@@ -43,20 +50,27 @@ public class KalahaGameValidator {
 
 	}
 
+	private String getPlayerTurnId(KalahaGame game) {
+		if (game.getPlayerTurn() == null || CollectionUtils.isEmpty(game.getPlayers())) {
+			throw new InvalidGameStateException("Invalid Game Players.");
+		}
+		return game.getPlayers().get(game.getPlayerTurnIndex()).getId();
+	}
+
 	public void validateGameRequest(KalahaGameRequest kalahaGameRequest) {
 
-		final boolean requestNotEmpty = kalahaGameRequest != null && kalahaGameRequest.getNumberOfPits() != null;
-		if (requestNotEmpty && (kalahaGameRequest.getNumberOfPits() < MIN_PITS
-				|| kalahaGameRequest.getNumberOfPits() > MAX_PITS)) {
-
+		final Integer numberOfPits = kalahaGameRequest.getNumberOfPits();
+		if (numberOfPits != null && (numberOfPits < MIN_PITS || numberOfPits > MAX_PITS)) {
 			throw new InvalidGameInputException("Invalid Number of Pits");
 		}
 
-		final boolean stoneNotEmpty = kalahaGameRequest != null && kalahaGameRequest.getNumberOfStones() != null;
-		if (stoneNotEmpty && (kalahaGameRequest.getNumberOfStones() < MIN_STONES
-				|| kalahaGameRequest.getNumberOfStones() > MAX_STONES)) {
-
+		final Integer numberOfStones = kalahaGameRequest.getNumberOfStones();
+		if (numberOfStones != null && (numberOfStones < MIN_STONES || numberOfStones > MAX_STONES)) {
 			throw new InvalidGameInputException("Invalid Number of Stones");
+		}
+
+		if (StringUtils.isBlank(kalahaGameRequest.getOpponent())) {
+			throw new InvalidGameInputException("Opponent can't be null or empty");
 		}
 
 	}

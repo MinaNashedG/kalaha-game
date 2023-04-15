@@ -25,9 +25,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RequestMapping("/api/v1/kalaha-games")
 @SecurityScheme(
-		name = "jwt",
+		name = "kalaha",
 		type = SecuritySchemeType.HTTP,
-		scheme = "bearer",
+		scheme = "kalaha",
 		bearerFormat = "JWT"
 )
 @Tag(name = "Kalaha Game API")
@@ -36,7 +36,7 @@ public interface KalahaApi {
 	@PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@ResponseStatus(HttpStatus.CREATED)
 	@Operation(summary = "Create New Kalaha Game API.",
-			security = {@SecurityRequirement(name = "jwt")},
+			security = {@SecurityRequirement(name = "kalaha")},
 			description = "Api for creating new kalaha game instance. It returns response object with " +
 					" new created game id, kalaha board and player turn",
 			responses = {
@@ -52,28 +52,22 @@ public interface KalahaApi {
 							@ExampleObject(value = "{\"code\":VAL_003,\"message\":\"Resource not found\"}"))),
 					@ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation =
 							KalahaErrorResponse.class),
-							examples = @ExampleObject(value = "{\"code\":GeneralException,\"message\":\"Internal " +
-									"server error\"}"))),
+							examples =
+							@ExampleObject(value = "{\"code\":GeneralException,\"message\":\"Internal server error\"}"))),
 					@ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation =
 							KalahaErrorResponse.class),
-							examples = @ExampleObject(value = "{\"code\":Unauthorized,\"message\":\"Not authorized " +
-									"user \"}"))),
+							examples =
+							@ExampleObject(value = "{\"code\":Unauthorized,\"message\":\"Not authorized user \"}"))),
 					@ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation =
 							KalahaErrorResponse.class),
 							examples = @ExampleObject(value = "{\"code\":Forbidden,\"message\":\"Access denied\"}")))
 			})
-	KalahaGameResponse createGame(@Parameter(
-			name = "Authorization",
-			description = "Access token",
-			required = true,
-			in = ParameterIn.HEADER,
-			schema = @Schema(type = "string", format = "JWT"))
-	@RequestBody(description = "Kalaha game request.",
+	KalahaGameResponse createGame(@RequestBody(description = "Kalaha game request.",
 			content = @Content(schema = @Schema(implementation = KalahaGameRequest.class))) KalahaGameRequest kalahaGameRequest);
 
 	@PutMapping(value = "/{gameId}/pits/{pitId}", produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Sowing Stones API.",
-			security = {@SecurityRequirement(name = "jwt")},
+			security = {@SecurityRequirement(name = "kalaha")},
 			description = "Api for sowing stones inside selected pit. It returns the game board after sowing stones " +
 					"to other game pits",
 			responses = {
@@ -89,12 +83,12 @@ public interface KalahaApi {
 							@ExampleObject(value = "{\"code\":VAL_003,\"message\":\"Resource not found\"}"))),
 					@ApiResponse(responseCode = "500", content = @Content(schema = @Schema(implementation =
 							KalahaErrorResponse.class),
-							examples = @ExampleObject(value = "{\"code\":GeneralException,\"message\":\"Internal " +
-									"server error\"}"))),
+							examples =
+							@ExampleObject(value = "{\"code\":GeneralException,\"message\":\"Internal server error\"}"))),
 					@ApiResponse(responseCode = "401", content = @Content(schema = @Schema(implementation =
 							KalahaErrorResponse.class),
-							examples = @ExampleObject(value = "{\"code\":Unauthorized,\"message\":\"Not authorized " +
-									"user \"}"))),
+							examples =
+							@ExampleObject(value = "{\"code\":Unauthorized,\"message\":\"Not authorized user \"}"))),
 					@ApiResponse(responseCode = "403", content = @Content(schema = @Schema(implementation =
 							KalahaErrorResponse.class),
 							examples = @ExampleObject(value = "{\"code\":Forbidden,\"message\":\"Access denied\"}")))

@@ -23,7 +23,7 @@ public class KalahaGameResponse {
 	private List<Integer> board;
 
 	@Schema(description = "Player turn number.", example = "1")
-	private Integer playerTurn;
+	private String playerTurn;
 
 	@Schema(description = "Status of the game.", example = "IN_PROGRESS")
 	private Status status;
@@ -32,5 +32,8 @@ public class KalahaGameResponse {
 	private boolean bonusTurn;
 
 	@Schema(description = "Indicate the player who won the game.", example = "1")
-	private Integer playerWin;
+	private String winner;
+
+	@Schema(description = "List of players.")
+	private List<PlayerResponse> players;
 }

@@ -6,6 +6,7 @@ import com.kalaha.game.exception.InvalidPlayerTurnException;
 import com.kalaha.game.model.GameStatus;
 import com.kalaha.game.model.KalahaGame;
 import com.kalaha.game.model.KalahaGameRequest;
+import com.kalaha.game.model.Player;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class KalahaGameValidatorTest {
 
+	public static final String PLAYER_1 = "1";
+	public static final String PLAYER_2 = "2";
 	private KalahaGameValidator validator;
 	private KalahaGame game;
 
@@ -27,80 +30,109 @@ class KalahaGameValidatorTest {
 		validator = new KalahaGameValidator();
 		game = new KalahaGame();
 		game.setBoard(Arrays.asList(0, 6, 6, 6, 6, 6, 6, 0, 6, 6, 6, 6, 6, 6, 0));
-		game.setStartPit(1);
-		game.setEndPit(7);
+		game.setStartPit(0);
+		game.setEndPit(6);
 		game.setStatus(GameStatus.IN_PROGRESS);
 		game.setNumberOfPits(6);
+		game.setPlayerTurn(PLAYER_1);
+		game.setPlayerTurnIndex(0);
+		game.setPlayers(List.of(Player.builder().id(PLAYER_1).build(),
+				Player.builder().id(PLAYER_2).build()));
 	}
 
 	@Test
 	void should_not_throw_exception() {
-		assertDoesNotThrow(() -> validator.validateGameAndPit(game, 1));
+		assertDoesNotThrow(() -> validator.validateGame(game, 1, PLAYER_1));
 		assertDoesNotThrow(() -> validator.validateGameRequest(KalahaGameRequest.builder()
 				.numberOfPits(5)
+				.opponent(PLAYER_2)
 				.build()));
 		assertDoesNotThrow(() -> validator.validateGameRequest(KalahaGameRequest.builder()
 				.numberOfStones(5)
+				.opponent(PLAYER_2)
 				.build()));
 		assertDoesNotThrow(() -> validator.validateGameRequest(KalahaGameRequest.builder()
 				.numberOfStones(5)
 				.numberOfPits(5)
+				.opponent(PLAYER_2)
 				.build()));
 		assertDoesNotThrow(() -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.opponent(PLAYER_2)
 				.build()));
 		assertDoesNotThrow(() -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.opponent(PLAYER_2)
 				.build()));
 	}
 
 	@Test
 	void should_throw_invalid_game_input_exception() {
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, -1));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 7));
-		assertThrows(InvalidPlayerTurnException.class, () -> validator.validateGameAndPit(game, 8));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 15));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 15));
 
 		//GIVEN
 		game.setStartPit(6);
 		game.setEndPit(13);
-		game.setPlayerTurn(2);
+		game.setPlayerTurn(PLAYER_2);
+		game.setPlayerTurnIndex(1);
 
-		//THEN
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 13));
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGame(game, 7, PLAYER_2));
+		assertThrows(InvalidPlayerTurnException.class, () -> validator.validateGame(game, 8, PLAYER_1));
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGame(game, 15, PLAYER_2));
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGame(game, 15, PLAYER_2));
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGame(game, 13, PLAYER_2));
+		assertThrows(InvalidPlayerTurnException.class, () -> validator.validateGame(game, 2, PLAYER_2));
+
+		game.setPlayerTurn(null);
+		assertThrows(InvalidGameStateException.class, () -> validator.validateGame(game, 0, PLAYER_1));
+
+		game.setPlayers(null);
+		assertThrows(InvalidGameStateException.class, () -> validator.validateGame(game, 0, PLAYER_1));
+
 	}
 
 	@Test
 	void should_throw_invalid_game_input_exception_when_request_is_invalid() {
 		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
 				.numberOfPits(1)
-				.build()));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
-				.numberOfPits(0)
-				.build()));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
-				.numberOfPits(11)
-				.build()));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
-				.numberOfStones(11)
-				.build()));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
-				.numberOfStones(0)
-				.build()));
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
-				.numberOfStones(2)
+				.opponent(PLAYER_2)
 				.build()));
 
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.build()));
+
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.numberOfPits(0)
+				.opponent(PLAYER_2)
+				.build()));
+
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.numberOfPits(11)
+				.opponent(PLAYER_2)
+				.build()));
+
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.numberOfStones(11)
+				.opponent(PLAYER_2)
+				.build()));
+
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.numberOfStones(0)
+				.opponent(PLAYER_2)
+				.build()));
+
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGameRequest(KalahaGameRequest.builder()
+				.opponent(PLAYER_2)
+				.numberOfStones(2)
+				.build()));
 	}
 
 	@Test
 	void should_throw_invalid_game_input_exception_when_pit_with_zero_stones() {
 		game.getBoard().set(1, 0);
-		assertThrows(InvalidGameInputException.class, () -> validator.validateGameAndPit(game, 1));
+		assertThrows(InvalidGameInputException.class, () -> validator.validateGame(game, 1, PLAYER_1));
 	}
 
 	@Test
 	void should_throw_invalid_player_turn_exception() {
-		assertThrows(InvalidPlayerTurnException.class, () -> validator.validateGameAndPit(game, 8));
+		assertThrows(InvalidPlayerTurnException.class, () -> validator.validateGame(game, 8, PLAYER_2));
 	}
 
 	@Test
@@ -122,7 +154,7 @@ class KalahaGameValidatorTest {
 	@Test
 	void should_throw_invalid_game_state_exception_when_game_is_already_over() {
 		game.setStatus(GameStatus.OVER);
-		assertThrows(InvalidGameStateException.class, () -> validator.validateGameAndPit(game, 1));
+		assertThrows(InvalidGameStateException.class, () -> validator.validateGame(game, 1, PLAYER_1));
 	}
 
 	@Test

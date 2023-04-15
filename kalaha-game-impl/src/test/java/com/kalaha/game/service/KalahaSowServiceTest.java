@@ -5,24 +5,34 @@ import com.kalaha.game.mapper.KalahaGameMapper;
 import com.kalaha.game.model.GameStatus;
 import com.kalaha.game.model.KalahaGame;
 import com.kalaha.game.model.KalahaGameResponse;
+import com.kalaha.game.model.Player;
+import com.kalaha.game.model.PlayerResponse;
 import com.kalaha.game.model.Status;
+import com.kalaha.game.security.UserContext;
 import com.kalaha.game.validator.KalahaGameValidator;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(MockitoExtension.class)
 class KalahaSowServiceTest {
 
 	public static final String GAME_ID = "123";
+	public static final String PLAYER_ONE = "1";
+	public static final String PLAYER_TWO = "2";
+	public static final List<PlayerResponse> PLAYER_RESPONSE_LIST = List.of(
+			PlayerResponse.builder().id(PLAYER_ONE).build(), PlayerResponse.builder().id(PLAYER_TWO).build());
+	public static final List<Player> PLAYERS = List.of(Player.builder().id(PLAYER_ONE).build(),
+			Player.builder().id(PLAYER_TWO).build());
 	@Mock
 	private KalahaGameRepository kalahaGameRepository;
 	@Mock
@@ -30,11 +40,16 @@ class KalahaSowServiceTest {
 	@Mock
 	private KalahaGameValidator kalahaGameValidator;
 
+	@Mock
+	private UserContext userContext;
+
 	private KalahaSowService kalahaSowService;
 
 	@BeforeEach
 	void setUp() {
-		kalahaSowService = new KalahaSowService(kalahaGameRepository, kalahaGameMapper, kalahaGameValidator);
+		kalahaSowService = new KalahaSowService(kalahaGameRepository, kalahaGameMapper, kalahaGameValidator,
+				userContext);
+		when(userContext.getUserId()).thenReturn(PLAYER_ONE);
 	}
 
 	@Test
@@ -42,19 +57,21 @@ class KalahaSowServiceTest {
 		//GIVEN
 		List<Integer> board = Arrays.asList(6, 6, 6, 6, 6, 6, 0, 6, 6, 6, 6, 6, 6, 0);
 		List<Integer> expectedBoard = Arrays.asList(0, 7, 7, 7, 7, 7, 1, 6, 6, 6, 6, 6, 6, 0);
-		KalahaGameResponse expectedGameResponse = kalahaGameResponse(expectedBoard, 1);
+
+		KalahaGameResponse gameResponse = kalahaGameResponse(expectedBoard, PLAYER_ONE);
 		KalahaGame kalahaGame = kalahaGamePlayerOneTurn(board, false, GameStatus.NEW);
-		KalahaGame kalahaGameWithBonusTurn = kalahaGamePlayerOneTurn(expectedBoard, true, GameStatus.NEW);
-		KalahaGame expectedKalahaGame = kalahaGamePlayerOneTurn(expectedBoard, true, GameStatus.IN_PROGRESS);
+		KalahaGame expectedBonusTurn = kalahaGamePlayerOneTurn(expectedBoard, true, GameStatus.IN_PROGRESS);
 
 		//WHEN
-		Mockito.when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
-		Mockito.when(kalahaGameValidator.isGameOver(kalahaGameWithBonusTurn)).thenReturn(false);
-		Mockito.when(kalahaGameRepository.save(expectedKalahaGame)).thenReturn(expectedKalahaGame);
-		Mockito.when(kalahaGameMapper.transform(expectedKalahaGame)).thenReturn(expectedGameResponse);
+		when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
+		when(kalahaGameValidator.isGameOver(kalahaGamePlayerOneTurn(expectedBoard, true, GameStatus.NEW)))
+				.thenReturn(false);
+		when(kalahaGameRepository.save(expectedBonusTurn)).thenReturn(expectedBonusTurn);
+		when(kalahaGameMapper.transform(expectedBonusTurn)).thenReturn(gameResponse);
 
 		//THEN
-		Assertions.assertEquals(expectedGameResponse, kalahaSowService.sow(GAME_ID, 0));
+		assertEquals(gameResponse, kalahaSowService.sow(GAME_ID, 0));
+
 	}
 
 	@Test
@@ -62,22 +79,21 @@ class KalahaSowServiceTest {
 		//GIVEN
 		List<Integer> board = Arrays.asList(6, 6, 6, 6, 6, 6, 0, 6, 6, 6, 6, 6, 6, 0);
 		List<Integer> expectedBoard = Arrays.asList(6, 0, 7, 7, 7, 7, 1, 7, 6, 6, 6, 6, 6, 0);
-		KalahaGameResponse expectedGameResponse = kalahaGameResponse(expectedBoard, 2);
-		KalahaGame kalahaGame = kalahaGamePlayerOneTurn(board, false, GameStatus.IN_PROGRESS);
-		KalahaGame input = kalahaGamePlayerOneTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		//WHEN
-		Mockito.when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
-
-		//Switch to another player
+		KalahaGameResponse gameResponse = kalahaGameResponse(expectedBoard, PLAYER_TWO);
 		KalahaGame expected = kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		Mockito.when(kalahaGameValidator.isGameOver(input)).thenReturn(false);
-		Mockito.when(kalahaGameRepository.save(expected)).thenReturn(expected);
-		Mockito.when(kalahaGameMapper.transform(expected)).thenReturn(expectedGameResponse);
+		//WHEN
+		when(kalahaGameRepository.findById(GAME_ID))
+				.thenReturn(Optional.of(kalahaGamePlayerOneTurn(board, false, GameStatus.IN_PROGRESS)));
+
+		when(kalahaGameValidator.isGameOver(kalahaGamePlayerOneTurn(expectedBoard, false,
+				GameStatus.IN_PROGRESS))).thenReturn(false);
+		when(kalahaGameRepository.save(expected)).thenReturn(expected);
+		when(kalahaGameMapper.transform(expected)).thenReturn(gameResponse);
 
 		//THEN
-		Assertions.assertEquals(expectedGameResponse, kalahaSowService.sow(GAME_ID, 1));
+		assertEquals(gameResponse, kalahaSowService.sow(GAME_ID, 1));
 
 	}
 
@@ -86,22 +102,20 @@ class KalahaSowServiceTest {
 		//GIVEN
 		List<Integer> board = Arrays.asList(0, 7, 7, 7, 7, 7, 1, 6, 6, 6, 6, 6, 6, 0);
 		List<Integer> expectedBoard = Arrays.asList(1, 8, 8, 8, 8, 7, 1, 6, 6, 6, 6, 6, 0, 1);
-		KalahaGameResponse expectedGameResponse = kalahaGameResponse(expectedBoard, 1);
-		KalahaGame kalahaGame = kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS);
-		KalahaGame input = kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		//WHEN
-		Mockito.when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
-		Mockito.when(kalahaGameValidator.isGameOver(input)).thenReturn(false);
-
-		//Switch to another player
+		KalahaGameResponse gameResponse = kalahaGameResponse(expectedBoard, PLAYER_ONE);
 		KalahaGame expected = kalahaGamePlayerOneTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		Mockito.when(kalahaGameRepository.save(expected)).thenReturn(expected);
-		Mockito.when(kalahaGameMapper.transform(expected)).thenReturn(expectedGameResponse);
+		//WHEN
+		when(kalahaGameRepository.findById(GAME_ID)).thenReturn(
+				Optional.of(kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS)));
+		when(kalahaGameValidator.isGameOver(
+				kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS))).thenReturn(false);
+		when(kalahaGameRepository.save(expected)).thenReturn(expected);
+		when(kalahaGameMapper.transform(expected)).thenReturn(gameResponse);
 
 		//THEN
-		Assertions.assertEquals(expectedGameResponse, kalahaSowService.sow(GAME_ID, 12));
+		assertEquals(gameResponse, kalahaSowService.sow(GAME_ID, 12));
 	}
 
 	@Test
@@ -109,22 +123,21 @@ class KalahaSowServiceTest {
 		//GIVEN
 		List<Integer> board = Arrays.asList(0, 7, 8, 7, 7, 7, 20, 6, 6, 1, 0, 6, 6, 10);
 		List<Integer> expectedBoard = Arrays.asList(0, 7, 0, 7, 7, 7, 20, 6, 6, 0, 0, 6, 6, 19);
-		KalahaGameResponse expectedGameResponse = kalahaGameResponse(expectedBoard, 1);
-		KalahaGame kalahaGame = kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS);
-		KalahaGame input = kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		//WHEN
-		Mockito.when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
-		Mockito.when(kalahaGameValidator.isGameOver(input)).thenReturn(false);
-
-		//Switch to another player
+		KalahaGameResponse gameResponse = kalahaGameResponse(expectedBoard, PLAYER_ONE);
 		KalahaGame expected = kalahaGamePlayerOneTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		Mockito.when(kalahaGameRepository.save(expected)).thenReturn(expected);
-		Mockito.when(kalahaGameMapper.transform(expected)).thenReturn(expectedGameResponse);
+		//WHEN
+		when(kalahaGameRepository.findById(GAME_ID)).thenReturn(
+				Optional.of(kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS)));
+		when(kalahaGameValidator.isGameOver(
+				kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS))).thenReturn(false);
+
+		when(kalahaGameRepository.save(expected)).thenReturn(expected);
+		when(kalahaGameMapper.transform(expected)).thenReturn(gameResponse);
 
 		//THEN
-		Assertions.assertEquals(expectedGameResponse, kalahaSowService.sow(GAME_ID, 9));
+		assertEquals(gameResponse, kalahaSowService.sow(GAME_ID, 9));
 	}
 
 	@Test
@@ -132,22 +145,23 @@ class KalahaSowServiceTest {
 		//GIVEN
 		List<Integer> board = Arrays.asList(0, 7, 0, 7, 7, 7, 20, 6, 6, 1, 0, 6, 6, 10);
 		List<Integer> expectedBoard = Arrays.asList(0, 7, 0, 7, 7, 7, 20, 6, 6, 0, 1, 6, 6, 10);
-		KalahaGameResponse expectedGameResponse = kalahaGameResponse(expectedBoard, 1);
-		KalahaGame kalahaGame = kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS);
-		KalahaGame input = kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
+
+		KalahaGameResponse gameResponse = kalahaGameResponse(expectedBoard, PLAYER_ONE);
 
 		//WHEN
-		Mockito.when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
-		Mockito.when(kalahaGameValidator.isGameOver(input)).thenReturn(false);
+		when(kalahaGameRepository.findById(GAME_ID)).thenReturn(
+				Optional.of(kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS)));
+		when(kalahaGameValidator.isGameOver(
+				kalahaGamePlayerTwoTurn(expectedBoard, false, GameStatus.IN_PROGRESS))).thenReturn(false);
 
 		//Switch to another player
 		KalahaGame expected = kalahaGamePlayerOneTurn(expectedBoard, false, GameStatus.IN_PROGRESS);
 
-		Mockito.when(kalahaGameRepository.save(expected)).thenReturn(expected);
-		Mockito.when(kalahaGameMapper.transform(expected)).thenReturn(expectedGameResponse);
+		when(kalahaGameRepository.save(expected)).thenReturn(expected);
+		when(kalahaGameMapper.transform(expected)).thenReturn(gameResponse);
 
 		//THEN
-		Assertions.assertEquals(expectedGameResponse, kalahaSowService.sow(GAME_ID, 9));
+		assertEquals(gameResponse, kalahaSowService.sow(GAME_ID, 9));
 	}
 
 	@Test
@@ -156,21 +170,40 @@ class KalahaSowServiceTest {
 		//GIVEN
 		List<Integer> board = Arrays.asList(5, 5, 5, 5, 5, 5, 20, 0, 0, 0, 0, 0, 1, 10);
 		List<Integer> expectedBoard = Arrays.asList(5, 5, 5, 5, 5, 5, 20, 0, 0, 0, 0, 0, 0, 11);
-		KalahaGameResponse expectedGameResponse = kalahaGameResponse(expectedBoard, 1);
-		expectedGameResponse.setStatus(Status.OVER);
-		expectedGameResponse.setPlayerWin(1);
 
-		KalahaGame kalahaGame = kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS);
-		KalahaGame expectedKalahaGame = kalahaGamePlayerTwoTurn(expectedBoard, true, GameStatus.IN_PROGRESS);
-		KalahaGame expectedKalahaGameOver = kalahaGamePlayerTwoTurn(expectedBoard, true, GameStatus.OVER);
-		expectedKalahaGameOver.setPlayerWin(1);
+		KalahaGameResponse gameResponse = KalahaGameResponse.builder()
+				.board(board)
+				.playerTurn(PLAYER_ONE)
+				.id(GAME_ID)
+				.bonusTurn(true)
+				.status(Status.OVER)
+				.winner(PLAYER_ONE)
+				.players(PLAYER_RESPONSE_LIST)
+				.build();
+
+		KalahaGame expectedKalahaGameOver = KalahaGame.builder().board(board)
+				.startPit(7)
+				.endPit(13)
+				.numberOfStones(6)
+				.playerTurn(PLAYER_TWO)
+				.playerTurnIndex(1)
+				.numberOfPlayers(2)
+				.bonusTurn(true)
+				.numberOfPits(6)
+				.status(GameStatus.OVER)
+				.players(PLAYERS)
+				.id(GAME_ID)
+				.winner(PLAYER_ONE)
+				.build();
 		//WHEN
-		Mockito.when(kalahaGameRepository.findById(GAME_ID)).thenReturn(Optional.of(kalahaGame));
-		Mockito.when(kalahaGameValidator.isGameOver(expectedKalahaGame)).thenReturn(true);
-		Mockito.when(kalahaGameRepository.save(expectedKalahaGameOver)).thenReturn(expectedKalahaGameOver);
-		Mockito.when(kalahaGameMapper.transform(expectedKalahaGameOver)).thenReturn(expectedGameResponse);
+		when(kalahaGameRepository.findById(GAME_ID)).thenReturn(
+				Optional.of(kalahaGamePlayerTwoTurn(board, false, GameStatus.IN_PROGRESS)));
+		when(kalahaGameValidator.isGameOver(
+				kalahaGamePlayerTwoTurn(expectedBoard, true, GameStatus.IN_PROGRESS))).thenReturn(true);
+		when(kalahaGameRepository.save(expectedKalahaGameOver)).thenReturn(expectedKalahaGameOver);
+		when(kalahaGameMapper.transform(expectedKalahaGameOver)).thenReturn(gameResponse);
 
-		Assertions.assertEquals(expectedGameResponse, kalahaSowService.sow(GAME_ID, 12));
+		assertEquals(gameResponse, kalahaSowService.sow(GAME_ID, 12));
 	}
 
 	private KalahaGame kalahaGamePlayerOneTurn(List<Integer> board, boolean bonus, GameStatus status) {
@@ -179,11 +212,13 @@ class KalahaSowServiceTest {
 				.startPit(0)
 				.endPit(6)
 				.numberOfStones(6)
-				.playerTurn(1)
+				.playerTurn(PLAYER_ONE)
+				.playerTurnIndex(0)
 				.numberOfPlayers(2)
 				.bonusTurn(bonus)
 				.numberOfPits(6)
 				.status(status)
+				.players(PLAYERS)
 				.id(GAME_ID).build();
 	}
 
@@ -193,21 +228,24 @@ class KalahaSowServiceTest {
 				.startPit(7)
 				.endPit(13)
 				.numberOfStones(6)
-				.playerTurn(2)
+				.playerTurn(PLAYER_TWO)
+				.playerTurnIndex(1)
 				.numberOfPlayers(2)
 				.bonusTurn(bonus)
 				.numberOfPits(6)
 				.status(status)
+				.players(PLAYERS)
 				.id(GAME_ID).build();
 	}
 
-	private KalahaGameResponse kalahaGameResponse(List<Integer> board, int turn) {
+	private KalahaGameResponse kalahaGameResponse(List<Integer> board, String turn) {
 		return KalahaGameResponse.builder()
 				.board(board)
 				.playerTurn(turn)
 				.id(GAME_ID)
 				.bonusTurn(true)
 				.status(Status.IN_PROGRESS)
+				.players(PLAYER_RESPONSE_LIST)
 				.build();
 	}
 }

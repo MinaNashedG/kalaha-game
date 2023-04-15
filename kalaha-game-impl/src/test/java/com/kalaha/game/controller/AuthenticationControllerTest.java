@@ -15,6 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
 
+	public static final String ID = "1";
 	@Mock
 	private AuthenticationService authenticationService;
 
@@ -29,8 +30,8 @@ class AuthenticationControllerTest {
 	@Test
 	void should_returnAuthenticatePlayer() {
 		// given
-		PlayerDTO playerDTO = new PlayerDTO("username", "password");
-		AuthenticatedPlayer authenticatedPlayer = new AuthenticatedPlayer("token");
+		PlayerDTO playerDTO = new PlayerDTO(ID, "username", "password", "email@email.com");
+		AuthenticatedPlayer authenticatedPlayer = new AuthenticatedPlayer("token", ID);
 		Mockito.when(authenticationService.authenticate(playerDTO)).thenReturn(authenticatedPlayer);
 
 		// when
@@ -43,7 +44,7 @@ class AuthenticationControllerTest {
 	@Test
 	void should_registerPlayer() {
 		// given
-		PlayerDTO playerDTO = new PlayerDTO("username", "password");
+		PlayerDTO playerDTO = new PlayerDTO(ID, "username", "password", "email@email.com");
 
 		// when
 		authenticationController.register(playerDTO);

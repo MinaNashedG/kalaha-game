@@ -1,9 +1,11 @@
 package com.kalaha.game.security;
 
+import com.kalaha.game.dao.KalahaPlayerRepository;
+import com.kalaha.game.model.GameUser;
+import com.kalaha.game.model.Player;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -13,18 +15,24 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 public class JwtRequestFilter extends OncePerRequestFilter {
 	public static final int BEGIN_INDEX = 7;
-	private final UserDetailsService userDetailsService;
-
+	private final UserDetailsServiceImpl userDetailsService;
+	private final KalahaPlayerRepository kalahaPlayerRepository;
 	private final JwtUtil jwtUtil;
 
+	private final UserContext userContext;
 
-	public JwtRequestFilter(UserDetailsService userDetailsService, JwtUtil jwtUtil) {
+	public JwtRequestFilter(UserDetailsServiceImpl userDetailsService, KalahaPlayerRepository kalahaPlayerRepository,
+			JwtUtil jwtUtil,
+			UserContext userContext) {
 		this.userDetailsService = userDetailsService;
+		this.kalahaPlayerRepository = kalahaPlayerRepository;
 		this.jwtUtil = jwtUtil;
+		this.userContext = userContext;
 	}
 
 	@Override
@@ -32,24 +40,28 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 			FilterChain chain) throws ServletException, IOException {
 		final String authorizationHeader = request.getHeader("Authorization");
 
-		String username = null;
+		String userId = null;
 		String jwt = null;
 
 		if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
 			jwt = authorizationHeader.substring(BEGIN_INDEX);
-			username = jwtUtil.getUsernameFromToken(jwt);
+			userId = jwtUtil.getUserIdFromToken(jwt);
 		}
 
-		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-			UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
+		if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+			Player user = kalahaPlayerRepository.findById(userId)
+					.orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-			if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
+			GameUser gameUserDetails = this.userDetailsService.loadUserByUsername(user.getUserName());
+
+			if (jwtUtil.validateToken(jwt, gameUserDetails.getId())) {
 				UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
 						new UsernamePasswordAuthenticationToken(
-								userDetails, null, userDetails.getAuthorities());
+								gameUserDetails, null, gameUserDetails.getAuthorities());
 				usernamePasswordAuthenticationToken.setDetails(
 						new WebAuthenticationDetailsSource().buildDetails(request));
 				SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+				userContext.setUserId(userId);
 			}
 		}
 		chain.doFilter(request, response);
