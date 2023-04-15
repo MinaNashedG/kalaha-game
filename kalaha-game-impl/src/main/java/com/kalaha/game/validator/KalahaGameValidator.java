@@ -23,7 +23,6 @@ public class KalahaGameValidator {
 	public static final int MAX_PITS = 10;
 	public static final int MIN_STONES = 3;
 	public static final int MAX_STONES = 10;
-	public static final int PLAYERS = 2;
 
 	public void validateGame(KalahaGame game, int pitId, String playerId) {
 		List<Integer> gameBoard = game.getBoard();
