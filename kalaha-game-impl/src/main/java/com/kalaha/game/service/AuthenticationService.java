@@ -10,7 +10,9 @@ import com.kalaha.game.model.AuthenticatedPlayer;
 import com.kalaha.game.model.Player;
 import com.kalaha.game.model.PlayerDTO;
 import com.kalaha.game.security.JwtUtil;
+import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -19,29 +21,19 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 @Slf4j
 public class AuthenticationService {
 	private final AuthenticationManager authenticationManager;
 	private final JwtUtil jwtUtil;
 	private final PasswordEncoder passwordEncoder;
-
 	private final KalahaPlayerMapper kalahaPlayerMapper;
-
 	private final KalahaPlayerRepository kalahaPlayerRepository;
-
-	public AuthenticationService(AuthenticationManager authenticationManager, JwtUtil jwtUtil,
-			PasswordEncoder passwordEncoder, KalahaPlayerMapper kalahaPlayerMapper,
-			KalahaPlayerRepository kalahaPlayerRepository) {
-		this.authenticationManager = authenticationManager;
-		this.jwtUtil = jwtUtil;
-		this.passwordEncoder = passwordEncoder;
-		this.kalahaPlayerMapper = kalahaPlayerMapper;
-		this.kalahaPlayerRepository = kalahaPlayerRepository;
-	}
 
 	public AuthenticatedPlayer authenticate(PlayerDTO playerDTO) {
 
-		if (playerDTO == null || playerDTO.getUserName() == null || playerDTO.getPassword() == null) {
+		if (playerDTO == null || StringUtils.isBlank(playerDTO.getUserName()) || StringUtils.isBlank(
+				playerDTO.getPassword())) {
 			throw new InvalidGameInputException("Username or password can't be empty");
 		}
 		authenticateUser(playerDTO);
