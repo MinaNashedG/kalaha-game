@@ -2,7 +2,7 @@ package com.kalaha.game.controller;
 
 import com.kalaha.game.model.AuthenticatedPlayer;
 import com.kalaha.game.model.PlayerDTO;
-import com.kalaha.game.security.AuthenticationService;
+import com.kalaha.game.service.AuthenticationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

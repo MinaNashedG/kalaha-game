@@ -3,7 +3,7 @@ package com.kalaha.game.controller;
 import com.kalaha.game.AuthenticationApi;
 import com.kalaha.game.model.AuthenticatedPlayer;
 import com.kalaha.game.model.PlayerDTO;
-import com.kalaha.game.security.AuthenticationService;
+import com.kalaha.game.service.AuthenticationService;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 

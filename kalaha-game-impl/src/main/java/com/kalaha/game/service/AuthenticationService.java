@@ -1,4 +1,4 @@
-package com.kalaha.game.security;
+package com.kalaha.game.service;
 
 import com.kalaha.game.dao.KalahaPlayerRepository;
 import com.kalaha.game.exception.AuthenticationFailedException;
@@ -9,6 +9,7 @@ import com.kalaha.game.mapper.KalahaPlayerMapper;
 import com.kalaha.game.model.AuthenticatedPlayer;
 import com.kalaha.game.model.Player;
 import com.kalaha.game.model.PlayerDTO;
+import com.kalaha.game.security.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

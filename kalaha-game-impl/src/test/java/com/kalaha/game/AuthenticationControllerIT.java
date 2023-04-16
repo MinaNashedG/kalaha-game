@@ -2,9 +2,8 @@ package com.kalaha.game;
 
 import com.kalaha.game.controller.AuthenticationController;
 import com.kalaha.game.dao.KalahaPlayerRepository;
-import com.kalaha.game.model.Player;
 import com.kalaha.game.model.PlayerDTO;
-import com.kalaha.game.security.AuthenticationService;
+import com.kalaha.game.service.AuthenticationService;
 import com.kalaha.game.security.JwtUtil;
 import com.kalaha.game.security.UserContext;
 import org.junit.jupiter.api.BeforeEach;
