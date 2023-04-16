@@ -12,6 +12,7 @@ import com.kalaha.game.model.KalahaGameResponse;
 import com.kalaha.game.model.Player;
 import com.kalaha.game.security.UserContext;
 import com.kalaha.game.validator.KalahaGameValidator;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,28 +23,15 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@AllArgsConstructor
 public class KalahaGameService {
 
 	private final KalahaGameRepository kalahaGameRepository;
 	private final KalahaGameMapper kalahaGameMapper;
 	private final KalahaGameConfig kalahaGameConfig;
-
 	private final KalahaGameValidator kalahaGameValidator;
-
 	private final KalahaPlayerRepository kalahaPlayerRepository;
-
 	private final UserContext userContext;
-
-	public KalahaGameService(KalahaGameRepository kalahaGameRepository, KalahaGameMapper kalahaGameMapper,
-			KalahaGameConfig kalahaGameConfig, KalahaGameValidator kalahaGameValidator,
-			KalahaPlayerRepository kalahaPlayerRepository, UserContext userContext) {
-		this.kalahaGameRepository = kalahaGameRepository;
-		this.kalahaGameMapper = kalahaGameMapper;
-		this.kalahaGameConfig = kalahaGameConfig;
-		this.kalahaGameValidator = kalahaGameValidator;
-		this.kalahaPlayerRepository = kalahaPlayerRepository;
-		this.userContext = userContext;
-	}
 
 	public KalahaGameResponse createNewGame(KalahaGameRequest kalahaGameRequest) {
 

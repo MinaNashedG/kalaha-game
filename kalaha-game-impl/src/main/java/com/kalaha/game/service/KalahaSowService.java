@@ -9,27 +9,20 @@ import com.kalaha.game.model.KalahaGameResponse;
 import com.kalaha.game.model.Player;
 import com.kalaha.game.security.UserContext;
 import com.kalaha.game.validator.KalahaGameValidator;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@AllArgsConstructor
 @Transactional
 public class KalahaSowService {
 	private final KalahaGameRepository kalahaGameRepository;
 	private final KalahaGameMapper kalahaGameMapper;
 	private final KalahaGameValidator kalahaGameValidator;
-
 	private final UserContext userContext;
-
-	public KalahaSowService(KalahaGameRepository kalahaGameRepository, KalahaGameMapper kalahaGameMapper,
-			KalahaGameValidator kalahaGameValidator, UserContext userContext) {
-		this.kalahaGameRepository = kalahaGameRepository;
-		this.kalahaGameMapper = kalahaGameMapper;
-		this.kalahaGameValidator = kalahaGameValidator;
-		this.userContext = userContext;
-	}
 
 	public KalahaGameResponse sow(String gameId, Integer pitId) {
 		KalahaGame game = kalahaGameRepository.findById(gameId)
