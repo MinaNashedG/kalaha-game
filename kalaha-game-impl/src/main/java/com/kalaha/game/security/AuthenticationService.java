@@ -43,7 +43,14 @@ public class AuthenticationService {
 		if (playerDTO == null || playerDTO.getUserName() == null || playerDTO.getPassword() == null) {
 			throw new InvalidGameInputException("Username or password can't be empty");
 		}
+		authenticateUser(playerDTO);
+		final Player gameUserDetails = kalahaPlayerRepository.findByUserName(playerDTO.getUserName());
+		final String jwt = jwtUtil.generateToken(gameUserDetails.getId());
 
+		return new AuthenticatedPlayer(jwt, gameUserDetails.getId());
+	}
+
+	private void authenticateUser(PlayerDTO playerDTO) {
 		try {
 			authenticationManager.authenticate(
 					new UsernamePasswordAuthenticationToken(playerDTO.getUserName(),
@@ -57,12 +64,6 @@ public class AuthenticationService {
 			log.error(ex.getMessage());
 			throw new AuthenticationFailedException("Incorrect username or password");
 		}
-
-		final Player gameUserDetails = kalahaPlayerRepository.findByUserName(playerDTO.getUserName());
-
-		final String jwt = jwtUtil.generateToken(gameUserDetails.getId());
-
-		return new AuthenticatedPlayer(jwt, gameUserDetails.getId());
 	}
 
 	public void registerUser(PlayerDTO playerDTO) {

@@ -56,24 +56,12 @@ public class KalahaGameService {
 		kalahaGameValidator.validateGameRequest(Optional.ofNullable(kalahaGameRequest)
 				.orElseThrow(() -> new InvalidGameInputException("Request can't be null")));
 
-		Player opponent = kalahaPlayerRepository.findById(kalahaGameRequest.getOpponent())
-				.orElseThrow(() -> new InvalidGameInputException("Opponent is not exist."));
-
-		Player player = kalahaPlayerRepository.findById(userContext.getUserId())
-				.orElseThrow(() -> new InvalidGameInputException("User Context is invalid"));
-
 		Integer numberOfPits = getNumberOfPlayerPits(kalahaGameRequest);
-
 		Integer numberOfTotalPits = getNumberOfTotalPits(kalahaGameRequest);
-
 		int[] pits = new int[numberOfTotalPits];
-
 		Integer numberOfStones = getNumberOfStones(kalahaGameRequest);
-
 		Arrays.fill(pits, numberOfStones);
-
 		List<Integer> pitsList = Arrays.stream(pits).boxed().collect(Collectors.toList());
-
 		resetPlayerScorePits(numberOfPits, numberOfTotalPits, pitsList);
 
 		return KalahaGame.builder()
@@ -84,10 +72,17 @@ public class KalahaGameService {
 				.numberOfStones(numberOfStones)
 				.playerTurn(userContext.getUserId())
 				.playerTurnIndex(0)
-				.players(Arrays.asList(player, opponent))
+				.players(getPlayers(kalahaGameRequest))
 				.startPit(0)
 				.endPit(numberOfPits)
 				.build();
+	}
+
+	private List<Player> getPlayers(KalahaGameRequest kalahaGameRequest) {
+		return Arrays.asList(kalahaPlayerRepository.findById(userContext.getUserId())
+						.orElseThrow(() -> new InvalidGameInputException("User Context is invalid")),
+				kalahaPlayerRepository.findById(kalahaGameRequest.getOpponent())
+						.orElseThrow(() -> new InvalidGameInputException("Opponent is not exist.")));
 	}
 
 	private void resetPlayerScorePits(Integer numberOfPits, Integer numberOfTotalPits, List<Integer> pits) {
