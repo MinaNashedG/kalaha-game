@@ -58,11 +58,11 @@ public class AuthenticationService {
 							playerDTO.getPassword()));
 		}
 		catch (UsernameNotFoundException ex) {
-			log.error(ex.getMessage());
+			log.error("Invalid username or password", ex);
 			throw new NoUserFoundException("User not found");
 		}
 		catch (AuthenticationException ex) {
-			log.error(ex.getMessage());
+			log.error("fail to authenticate user", ex);
 			throw new AuthenticationFailedException("Incorrect username or password");
 		}
 	}
